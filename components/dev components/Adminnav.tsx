@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import {
   //   ShoppingCart,
@@ -12,24 +12,31 @@ import { useRouter } from "next/navigation";
 import { asyncCurrentUser, asyncSignoutUser } from "@/store/action/userAction";
 
 const Adminavbar = () => {
+  const [token, setToken] = useState<string | null>(null);
   const { cart } = useSelector((state: any) => state);
   const { isAuthenticated, isAdmin, user } = useSelector(
     (state: any) => state.user
   );
   const router = useRouter();
-  console.log(isAuthenticated, ";ldfgkdf;");
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(asyncCurrentUser());
-    console.log("navv effect", isAdmin, isAuthenticated);
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+
+    if (storedToken) {
+      dispatch(asyncCurrentUser(storedToken));
+    }
+  }, [dispatch]);
+
+  useEffect(() => {
     if (isAuthenticated) {
       isAdmin && router.push("/admin");
     }
-  }, [isAdmin, isAuthenticated]);
+  }, [isAdmin, isAuthenticated, router]);
 
   const Signout = async () => {
-    const res = await dispatch(asyncSignoutUser());
+    const res = await dispatch(asyncSignoutUser(token));
     router.push("/");
   };
   return (

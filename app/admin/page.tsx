@@ -24,6 +24,8 @@ interface UpdateProductProps {
 }
 
 const page = () => {
+  const [token, setToken] = useState<string | null>(null);
+
   const { isAdmin } = useSelector((state: any) => state.user);
   const router = useRouter();
   const [products, setProducts] = useState([]);
@@ -32,12 +34,21 @@ const page = () => {
   const [selectedProduct, setSelectedProduct] =
     useState<UpdateProductProps | null>(null);
   const dispatch = useDispatch();
-
-  // console.log(products, "empty");
   const fetchData = async () => {
     const res = await dispatch(asyncShowProducts());
     setProducts(res.products);
   };
+
+  useEffect(() => {
+    // setIsClient(true);
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+
+    if (!isAdmin) {
+      router.push("/");
+    }
+  }, [isAdmin, router]);
+
   useEffect(() => {
     fetchData();
     isAdmin ? router.push("/admin") : router.push("/");
@@ -49,9 +60,11 @@ const page = () => {
   };
 
   const handleDeleteProduct = async (productId: any) => {
-    const resp = await dispatch(asyncDeleteProducts(productId));
+    if (token) {
+      const resp = await dispatch(asyncDeleteProducts(productId, token));
 
-    await fetchData();
+      await fetchData();
+    }
   };
 
   return (

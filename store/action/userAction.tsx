@@ -6,17 +6,24 @@ export const asyncSignup: any = (info: any) => async (dispatch: any) => {
   try {
     const { data } = await axios.post("/api/v1/user/signup", info);
     localStorage.setItem("token", data.token);
-    dispatch(asyncCurrentUser());
-    console.log(data);
+    dispatch(asyncCurrentUser(data.token));
   } catch (error) {
     console.log(error);
   }
 };
 
 export const asyncCurrentUser: any =
-  () => async (dispatch: any, getState: any) => {
+  (token: any) => async (dispatch: any, getState: any) => {
     try {
-      const { data } = await axios.post("/api/v1/user/current");
+      const { data } = await axios.post(
+        "/api/v1/user/current",
+        {},
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
       if (data.user.role === "admin") {
         dispatch(isadmin());
       }
@@ -29,12 +36,11 @@ export const asyncCurrentUser: any =
   };
 
 export const asyncSigninUser: any =
-  (loginData: {}) => async (dispatch: any, getState: any) => {
+  (loginData: {}, token: string) => async (dispatch: any, getState: any) => {
     try {
-      // console.log(loginData, "action");
       const { data }: any = await axios.post("api/v1/user/signin", loginData);
       localStorage.setItem("token", data.token);
-      dispatch(asyncCurrentUser());
+      dispatch(asyncCurrentUser(data.token));
       return true;
     } catch (error: any) {
       console.log(error.response.data);
@@ -43,10 +49,13 @@ export const asyncSigninUser: any =
   };
 
 export const asyncSignoutUser: any =
-  () => async (dispatch: any, getState: any) => {
+  (token: string) => async (dispatch: any, getState: any) => {
     try {
-      const { data } = await axios.get("/api/v1/user/signout/");
-      console.log(data, "signout");
+      const { data } = await axios.get("/api/v1/user/signout/", {
+        headers: {
+          Authorization: `${token}`,
+        },
+      });
       dispatch(removeuser);
       localStorage.removeItem("token");
     } catch (error: any) {

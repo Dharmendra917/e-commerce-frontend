@@ -57,8 +57,6 @@ export default function Signin() {
     setIsLoading(true);
     // Simulate API call
     const resp = await dispatch(asyncSigninUser(values));
-    // console.log(resp, "flg;kdfgkl;dflgk");
-    console.log(isAdmin, "isadmin");
     isAdmin ? router.push("/admin") : router.push("/");
 
     if (resp) {

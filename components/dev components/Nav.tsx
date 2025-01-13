@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import {
   //   ShoppingCart,
@@ -14,26 +14,36 @@ import { useRouter } from "next/navigation";
 import { asyncCurrentUser, asyncSignoutUser } from "@/store/action/userAction";
 
 const Navbar = () => {
-  const { cart } = useSelector((state: any) => state);
+  const [token, setToken] = useState<string | null>(null);
   const { isAuthenticated, isAdmin, user } = useSelector(
     (state: any) => state.user
   );
   const router = useRouter();
-  console.log(isAuthenticated, ";ldfgkdf;");
   const dispatch = useDispatch();
 
-  const Signout = async () => {
-    const res = await dispatch(asyncSignoutUser());
-    router.push("/");
-  };
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+
+    if (storedToken) {
+      dispatch(asyncCurrentUser(storedToken));
+    }
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(asyncCurrentUser());
-    console.log("navv effect", isAdmin, isAuthenticated);
     if (isAuthenticated) {
       isAdmin && router.push("/admin");
     }
-  }, [isAdmin, isAuthenticated]);
+  }, [isAdmin, isAuthenticated, router]);
+
+  const Signout = async () => {
+    if (token) {
+      const res = await dispatch(asyncSignoutUser(token));
+      router.push("/");
+      localStorage.removeItem("token");
+      setToken(null);
+    }
+  };
 
   return (
     <header className="border-b">

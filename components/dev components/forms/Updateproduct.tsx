@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -93,6 +93,9 @@ export function UpdateProduct({
   setIsUpdateForm,
 }: UpdateProductProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const dispatch = useDispatch();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -103,11 +106,10 @@ export function UpdateProduct({
     },
   });
 
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      console.log("vashaj", values);
       // Create a new FormData instance
       const formData = new FormData();
       // Append all form fields to FormData
@@ -122,10 +124,9 @@ export function UpdateProduct({
         }
       });
       // Dispatch the action with FormData
-      const resp = await dispatch(asyncUpdateProducts(formData, product._id));
-
-      console.log(resp, " upd product resp");
-
+      const resp = await dispatch(
+        asyncUpdateProducts(formData, product._id, token)
+      );
       setIsLoading(false);
       setIsUpdateForm(false);
     } catch (error) {
@@ -133,6 +134,11 @@ export function UpdateProduct({
       // Handle error (e.g., show error message to user)
     }
   }
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("token");
+    setToken(storedToken);
+  }, []);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
